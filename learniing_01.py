@@ -74,7 +74,7 @@ led3.value(0)
 
 '''
 
-## 5. 多顆led同時亮
+## 5. 多顆led同時亮(陣列法)
 '''
 from machine import Pin
 import time
