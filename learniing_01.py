@@ -15,8 +15,6 @@ led.value(0)
 time.sleep(1)
 '''
 
-
-
 ```
 ## 2. LED 閃爍程式
 ```
