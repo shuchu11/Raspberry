@@ -18,8 +18,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "tim.h"
 #include "gpio.h"
-
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -33,11 +33,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define BUTTON1  HAL_GPIO_ReadPin(btn1_GPIO_Port, btn1_Pin) // 讀取按鈕1狀態
-#define BUTTON2  HAL_GPIO_ReadPin(btn2_GPIO_Port, btn2_Pin) // 讀取按鈕2狀態
 
-#define BEEPON   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_SET)   //開啟蜂鳴器
-#define BEEPOFF  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_RESET) //關閉蜂鳴器
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -48,8 +44,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint16_t led_pins[] = {LED1_Pin, LED2_Pin, LED3_Pin, LED4_Pin}; // LED燈的引腳陣列
-int num_leds = sizeof(led_pins) / sizeof(led_pins[0]);      // 計算LED數量
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -92,32 +87,9 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-  void LED()
-    {
-         static int delay = 300, direction = 1;  // 設定初始延遲與方向
 
-         // 根據按鈕狀態調整LED跑馬燈速度與方向
-        if (BUTTON1 == 0 && BUTTON2 == 1) delay /= 1.25;       // 按鈕1按下，變快
-        else if (BUTTON1 == 1 && BUTTON2 == 0) delay *= 1.25;  // 按鈕2按下，變慢
-        else if (BUTTON1 == 1 && BUTTON2 == 1) direction *= -1;// 按鈕同時按下，反轉
-
-        for (int i = (direction == 1 ? 0 : num_leds - 1);
-          (direction == 1 ? i < num_leds : i >= 0);
-          i += direction) {
-          HAL_GPIO_WritePin(LED1_GPIO_Port, led_pins[i], GPIO_PIN_SET); // 點亮當前LED
-          HAL_Delay(delay);
-          HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin | LED2_Pin | LED3_Pin | LED4_Pin,
-                            GPIO_PIN_RESET);// 關閉所有LED
-        }
-
-        // 當按鈕被按下時，蜂鳴器響100毫秒
-        if (BUTTON1 || BUTTON2) {
-            BEEPON;
-            HAL_Delay(100);
-            BEEPOFF;
-        }
-    }
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -125,7 +97,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  LED(); // 執行LED
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -148,13 +120,12 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 16;
-  RCC_OscInitStruct.PLL.PLLN = 336;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 4;
+  RCC_OscInitStruct.PLL.PLLN = 192;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
   RCC_OscInitStruct.PLL.PLLQ = 4;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
@@ -171,7 +142,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
   {
     Error_Handler();
   }
@@ -183,7 +154,7 @@ void SystemClock_Config(void)
 
 /**
   * @brief  This function is executed in case of error occurrence.
-  * @retval None
+  * @Rightful None
   */
 void Error_Handler(void)
 {
